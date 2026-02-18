@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <ncurses.h>
 
-void open_file(int argc, char** argv);
+void open_file(char* filepath);
+void handle_input();
 
 int main(int argc, char** argv) {
     if(argc != 2) {
@@ -12,23 +13,23 @@ int main(int argc, char** argv) {
 
     initscr();
 
-    open_file(argc, argv);
-    getch();
+    open_file(argv[1]);
+    handle_input();
 
     endwin();
 
     return 0;
 }
 
-void open_file(int argc, char** argv) {
-    FILE* file = fopen(argv[1], "r");
+void open_file(char* filepath) {
+    FILE* file = fopen(filepath, "r");
 
     const unsigned int file_contents_length = 100;
     char file_contents[file_contents_length];
 
     if(file != NULL) {
         while(fgets(file_contents, file_contents_length, file)) {
-            printw("%s", file_contents);
+            addstr(file_contents);
         }
 
         fclose(file);
@@ -36,5 +37,28 @@ void open_file(int argc, char** argv) {
         endwin();
         fprintf(stderr, "The file you specified does not exist.");
         exit(1);
+    }
+}
+
+void handle_input() {
+    noecho();
+    keypad(stdscr, TRUE);
+
+    while(1) {
+        int input = getch();
+
+        switch(input) {
+            case KEY_BACKSPACE:
+            case 127:
+            case 8:
+                move(getcury(stdscr), (getcurx(stdscr) - 1));
+                delch();
+                break;
+            case '\n':
+                move((getcury(stdscr) + 1), 0);
+                break;
+            default:
+                addch(input);
+        }
     }
 }
