@@ -31,13 +31,11 @@ void open_file(char* filepath) {
         while(fgets(file_contents, file_contents_length, file)) {
             addstr(file_contents);
         }
-
-        fclose(file);
     } else {
-        endwin();
-        fprintf(stderr, "The file you specified does not exist.");
-        exit(1);
+        file = fopen(filepath, "w");
     }
+
+    fclose(file);
 }
 
 void handle_input() {
@@ -56,6 +54,18 @@ void handle_input() {
                 break;
             case '\n':
                 move((getcury(stdscr) + 1), 0);
+                break;
+            case KEY_UP:
+                move((getcury(stdscr) - 1), (getcurx(stdscr)));
+                break;
+            case KEY_DOWN:
+                move((getcury(stdscr) + 1), (getcurx(stdscr)));
+                break;
+            case KEY_LEFT:
+                move((getcury(stdscr)), (getcurx(stdscr) - 1));
+                break;
+            case KEY_RIGHT:
+                move((getcury(stdscr)), (getcurx(stdscr) + 1));
                 break;
             default:
                 addch(input);
