@@ -29,7 +29,9 @@ void open_file(char* filepath) {
 
     if(file != NULL) {
         while(fgets(file_contents, file_contents_length, file)) {
-            addstr(file_contents);
+            for(int i = 0; file_contents[i] != '\0'; i++) {
+                addch(file_contents[i]);
+            }
         }
     } else {
         file = fopen(filepath, "w");
@@ -39,36 +41,79 @@ void open_file(char* filepath) {
 }
 
 void handle_input() {
+    raw();
     noecho();
     keypad(stdscr, TRUE);
 
+    unsigned int y, x;
+
+    const unsigned int length = 100;
+    char characters[length][length] = {};
+    unsigned int line_lengths[length] = {};
+    unsigned int lines = 1;
+
     while(1) {
         int input = getch();
+
+        getyx(stdscr, y, x);
 
         switch(input) {
             case KEY_BACKSPACE:
             case 127:
             case 8:
-                move(getcury(stdscr), (getcurx(stdscr) - 1));
-                delch();
+                if(x == 0 && y == 0) {
+                    break;
+                }
+
+                if(x > 0) {
+                    move(y, x - 1);
+                    delch();
+                    characters[y][x - 1] = '\0';
+                    line_lengths[y]--;
+                } else {
+                    move(y - 1, line_lengths[y - 1]);
+                }
+
                 break;
             case '\n':
-                move((getcury(stdscr) + 1), 0);
+                move(y + 1, 0);
+                lines++;
                 break;
             case KEY_UP:
-                move((getcury(stdscr) - 1), (getcurx(stdscr)));
+                if(y != 0) {
+                    move(y - 1, line_lengths[y - 1]);
+                }
+
                 break;
             case KEY_DOWN:
-                move((getcury(stdscr) + 1), (getcurx(stdscr)));
+                if(y != lines) {
+                    move(y + 1, line_lengths[y + 1]);
+                }   
+
                 break;
             case KEY_LEFT:
-                move((getcury(stdscr)), (getcurx(stdscr) - 1));
+                if(x != 0) {
+                    move(y, x - 1);
+                }
+
                 break;
             case KEY_RIGHT:
-                move((getcury(stdscr)), (getcurx(stdscr) + 1));
+                if(x != line_lengths[y]) {
+                    move(y, x + 1);
+                }
+
                 break;
+            case 27:
+                return;
             default:
                 addch(input);
+                characters[y][x] = input;
+                line_lengths[y]++;
+        }
+
+        if(x == getmaxx(stdscr) - 2) {
+            move(y + 1, 0);
+            lines++;
         }
     }
 }
